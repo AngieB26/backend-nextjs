@@ -4,9 +4,13 @@ import { z } from 'zod';
 import { sanitizeInput, checkRateLimit, getRateLimitIdentifier } from '../../../lib/security';
 import { withSecureCors } from '../../../lib/middleware';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Missing OPENAI_API_KEY');
+  }
+  return new OpenAI({ apiKey });
+}
 
 const analyzeSchema = z.object({
   text: z.string().min(1, 'El texto no puede estar vacío').max(10000, 'El texto es demasiado largo'),
@@ -89,7 +93,7 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
