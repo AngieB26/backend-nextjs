@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const runtime = "nodejs";
 
@@ -9,6 +9,8 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",
 };
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -20,18 +22,36 @@ export async function OPTIONS() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const { text, content } = body;
+    
+    const textToAnalyze = text || content || "";
+    
+    if (!textToAnalyze) {
+      return NextResponse.json(
+        { error: "No text provided" },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
 
-    // Ejemplo: almacenar en DB con Prisma
-    // const newRecord = await prisma.message.create({ data: { text: body.mensaje } });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    
+    const prompt = `Resume el siguiente texto de manera concisa y clara, manteniendo los puntos más importantes:
+
+${textToAnalyze}
+
+Resumen:`;
+
+    const result = await model.generateContent(prompt);
+    const summary = result.response.text();
 
     return NextResponse.json(
-      { ok: true, data: body },
+      { ok: true, data: { summary, original: textToAnalyze } },
       { headers: CORS_HEADERS }
     );
   } catch (err) {
-    console.error(err);
+    console.error("Error al resumir:", err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: "Error al generar el resumen" },
       { status: 500, headers: CORS_HEADERS }
     );
   }
