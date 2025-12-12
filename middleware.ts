@@ -1,34 +1,34 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const origin = request.headers.get('origin') || '';
-  // Allow any origin; tighten later if needed
-  const allowedOrigin = origin || '*';
-  
-  // Handle preflight requests
-  if (request.method === 'OPTIONS') {
+export function middleware(req: NextRequest) {
+  // Permitir solo tu frontend en producción
+  const allowedOrigin = 'https://frontend-lovable.vercel.app';
+
+  // Responder directamente a preflight (OPTIONS)
+  if (req.method === 'OPTIONS') {
     return new NextResponse(null, {
-      status: 200,
+      status: 204, // No Content
       headers: {
         'Access-Control-Allow-Origin': allowedOrigin,
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With',
-        'Access-Control-Max-Age': '86400',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
       },
     });
   }
 
-  // Handle actual requests
-  const response = NextResponse.next();
+  // Para cualquier otra request, devolver normalmente con headers CORS
+  const res = NextResponse.next();
+  res.headers.set('Access-Control-Allow-Origin', allowedOrigin);
+  res.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.headers.set('Access-Control-Allow-Credentials', 'true');
 
-  response.headers.set('Access-Control-Allow-Origin', allowedOrigin);
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With');
-
-  return response;
+  return res;
 }
 
+// Solo aplica a rutas /api/*
 export const config = {
   matcher: '/api/:path*',
 };
