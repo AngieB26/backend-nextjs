@@ -44,7 +44,12 @@ ${textToAnalyze}`;
     const summary = result.response.text().trim();
 
     return NextResponse.json(
-      { ok: true, data: { summary, original: textToAnalyze } },
+      { 
+        ok: true, 
+        data: summary,
+        summary: summary,
+        original: textToAnalyze 
+      },
       { headers: CORS_HEADERS }
     );
   } catch (err) {
