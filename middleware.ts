@@ -1,20 +1,21 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
+export function middleware(request: NextRequest) {
   // Permitir solo tu frontend en producción
-    const origin = req.headers.get('origin') || '';
-    const allowedOrigin = origin && origin.length > 0 ? origin : '';
+  // Only allow your production frontend origin explicitly
+  const origin = request.headers.get('origin') || '';
+  const allowedOrigin = origin === 'https://frontend-lovable.vercel.app' ? origin : '';
 
   // Responder directamente a preflight (OPTIONS)
-  if (req.method === 'OPTIONS') {
+  if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
-      status: 204, // No Content
+      status: 204,
       headers: {
-          ...(allowedOrigin ? { 'Access-Control-Allow-Origin': allowedOrigin } : {}),
-        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+        ...(allowedOrigin ? { 'Access-Control-Allow-Origin': allowedOrigin } : {}),
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
       },
     });
   }
@@ -26,7 +27,7 @@ export function middleware(req: NextRequest) {
     }
   res.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.headers.set('Access-Control-Allow-Credentials', 'true');
+  res.headers.set('Access-Control-Allow-Credentials', 'false');
 
   return res;
 }
