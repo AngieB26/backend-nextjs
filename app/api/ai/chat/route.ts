@@ -70,13 +70,13 @@ Ayudas a los usuarios a:
 
 Responde en español de manera clara y concisa.${context ? `\n\nContexto de las notas del usuario:\n${context}` : ''}`;
 
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: 'system', content: systemPrompt },
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
       ...conversationHistory.map(msg => ({
-        role: msg.role as 'user' | 'assistant',
+        role: msg.role,
         content: msg.content,
       })),
-      { role: 'user', content: message },
+      { role: 'user' as const, content: message },
     ];
 
     const completion = await openai.chat.completions.create({
