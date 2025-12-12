@@ -26,13 +26,15 @@ function getCORSOrigin(origin?: string): string {
 }
 
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin') || 'http://localhost:8080';
+  const origin = request.headers.get('origin') || '';
+  const allowedOrigin = CORS_ORIGINS.includes(origin) ? origin : CORS_ORIGINS[0];
+  
   return new NextResponse(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': getCORSOrigin(origin),
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     },
   });
