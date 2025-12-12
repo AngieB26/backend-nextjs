@@ -1,12 +1,7 @@
 import { NextRequest } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://frontend-lovable.vercel.app',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+import { corsResponse, corsOptions } from '@/app/lib/cors';
 
 function getGemini() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -17,15 +12,14 @@ function getGemini() {
   return genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 }
 
-export async function OPTIONS() {
-  return new Response(null, { status: 204, headers: corsHeaders });
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  return corsOptions(origin);
 }
 
-export async function GET() {
-  return new Response(JSON.stringify({ ok: true, route: 'chat', method: 'GET' }), {
-    status: 200,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+export async function GET(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  return corsResponse({ ok: true, route: 'chat', method: 'GET' }, { origin });
 }
 
 const chatSchema = z.object({
@@ -40,6 +34,8 @@ const chatSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  
   try {
     const body = await request.json();
     const { message, context, conversationHistory = [] } = chatSchema.parse(body);
@@ -69,29 +65,20 @@ Asistente:`;
     const completion = await getGemini().generateContent(fullPrompt);
     const response = completion.response.text();
 
-    return new Response(JSON.stringify({ success: true, response }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return corsResponse({ success: true, response }, { origin });
   } catch (error) {
     console.error('Error en chat de IA:', error);
 
     if (error instanceof z.ZodError) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Datos de entrada inválidos', details: error.issues }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+      return corsResponse(
+        { success: false, error: 'Datos de entrada inválidos', details: error.issues },
+        { status: 400, origin }
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: false, error: 'Error al procesar el chat' }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+    return corsResponse(
+      { success: false, error: 'Error al procesar el chat' },
+      { status: 500, origin }
     );
   }
 }

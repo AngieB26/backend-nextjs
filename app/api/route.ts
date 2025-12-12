@@ -1,44 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { corsResponse, corsOptions } from '@/app/lib/cors';
 
-const ALLOWED_ORIGIN = 'https://frontend-lovable.vercel.app';
-
-export async function OPTIONS(req: NextRequest) {
-  const origin = req.headers.get('origin') || '';
-  const allowed = origin === ALLOWED_ORIGIN ? origin : '';
-
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      ...(allowed ? { 'Access-Control-Allow-Origin': allowed } : {}),
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  return corsOptions(origin);
 }
 
-export async function GET(req: NextRequest) {
-  const origin = req.headers.get('origin') || '';
-  const allowed = origin === ALLOWED_ORIGIN ? origin : '';
+export async function GET(request: NextRequest) {
+  const origin = request.headers.get('origin');
 
-  const body = {
-    name: 'MindNote API',
-    version: '1.0.0',
-    status: 'online',
-    endpoints: {
-      ai: {
-        analyze: '/api/ai/analyze',
-        chat: '/api/ai/chat',
-        generate: '/api/ai/generate',
-        search: '/api/ai/search'
+  return corsResponse(
+    {
+      name: 'MindNote API',
+      version: '1.0.0',
+      status: 'online',
+      timestamp: new Date().toISOString(),
+      endpoints: {
+        ai: {
+          analyze: '/api/ai/analyze',
+          chat: '/api/ai/chat',
+          generate: '/api/ai/generate',
+          search: '/api/ai/search'
+        }
       }
-    }
-  };
-
-  return NextResponse.json(body, {
-    status: 200,
-    headers: {
-      ...(allowed ? { 'Access-Control-Allow-Origin': allowed } : {}),
     },
-  });
+    { origin }
+  );
 }
