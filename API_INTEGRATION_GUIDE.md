@@ -5,6 +5,19 @@
 https://backend-nextjs-one.vercel.app
 ```
 
+## 📋 Endpoints Disponibles
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | /api/categories | Listar categorías |
+| POST | /api/categories | Crear categoría |
+| GET | /api/notes | Listar notas |
+| POST | /api/notes | Crear nota |
+| GET | /api/notes/[id] | Obtener nota específica |
+| PATCH | /api/notes/[id] | Actualizar nota parcialmente |
+| DELETE | /api/notes/[id] | Eliminar nota |
+| POST | /api/ai/analyze | Resumir texto con IA |
+
 ---
 
 ## 1️⃣ Gestionar Categorías
