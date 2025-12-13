@@ -56,9 +56,9 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { title, content, categoryId, userId } = body;
+    const { title, content, categoryId, userId, isPinned } = body;
 
-    console.log("📝 POST /api/notes", { title, content, categoryId, userId });
+    console.log("📝 POST /api/notes", { title, content, categoryId, userId, isPinned });
 
     if (!title || !content) {
       return NextResponse.json(
@@ -81,6 +81,7 @@ export async function POST(req: Request) {
       content,
       categoryId: finalCategoryId,
       userId: finalUserId,
+      isPinned: isPinned || false,
     });
 
     const note = await prisma.note.create({
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
         title,
         content,
         categoryId: finalCategoryId,
+        isPinned: isPinned || false,
         ...(finalUserId && { userId: finalUserId }),
       },
       include: { category: true },

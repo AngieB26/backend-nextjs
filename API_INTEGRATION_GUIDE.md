@@ -46,11 +46,11 @@ categories.forEach(cat => console.log(cat.name, cat.icon));
 
 ### Crear nota
 ```javascript
-async function createNote(title, content, categoryId, userId) {
+async function createNote(title, content, categoryId, userId, isPinned = false) {
   const response = await fetch('https://backend-nextjs-one.vercel.app/api/notes', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, categoryId, userId })
+    body: JSON.stringify({ title, content, categoryId, userId, isPinned })
   });
   
   const { ok, data } = await response.json();
@@ -60,8 +60,9 @@ async function createNote(title, content, categoryId, userId) {
 
 // Uso - Opción 1: Sin usuario (anónimo) ni categoría
 const note = await createNote('Mi nota', 'Contenido');
-// → userId se genera automáticamente como "anonymous-{timestamp}"
+// → userId = null (anónimo)
 // → categoryId se asigna a "General" automáticamente
+// → isPinned = false por defecto
 
 // Uso - Opción 2: Solo con categoría
 const note = await createNote(
@@ -69,7 +70,6 @@ const note = await createNote(
   'Contenido',
   'cmj3k8pmz0001jgbuquphop4q' // categoryId
 );
-// → userId se genera automáticamente
 
 // Uso - Opción 3: Con usuario y categoría
 const note = await createNote(
@@ -77,6 +77,15 @@ const note = await createNote(
   'Contenido',
   'cmj3k8pmz0001jgbuquphop4q', // categoryId (opcional)
   'cmj3k8oyp0000jgbubth55gak'  // userId (opcional)
+);
+
+// Uso - Opción 4: Crear nota fijada (pinned)
+const pinnedNote = await createNote(
+  'Nota importante',
+  'Contenido urgente',
+  null, // categoryId (usará "General")
+  null, // userId (anónimo)
+  true  // isPinned
 );
 ```
 
@@ -93,6 +102,43 @@ const notes = await getNotes();
 notes.forEach(note => {
   console.log(note.title, '→', note.category.name);
 });
+```
+
+### Actualizar nota (PATCH)
+```javascript
+async function updateNote(noteId, updates) {
+  const response = await fetch(`https://backend-nextjs-one.vercel.app/api/notes/${noteId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates) // { title?, content?, categoryId?, isPinned? }
+  });
+  
+  const { ok, data } = await response.json();
+  if (ok) return data;
+  throw new Error('Note update failed');
+}
+
+// Uso - Toggle pin:
+await updateNote('cmj3k8pmz0001jgbu...', { isPinned: true });
+
+// Uso - Cambiar título:
+await updateNote('cmj3k8pmz0001jgbu...', { title: 'Nuevo título' });
+```
+
+### Eliminar nota (DELETE)
+```javascript
+async function deleteNote(noteId) {
+  const response = await fetch(`https://backend-nextjs-one.vercel.app/api/notes/${noteId}`, {
+    method: 'DELETE'
+  });
+  
+  const { ok, message } = await response.json();
+  if (ok) return true;
+  throw new Error('Note deletion failed');
+}
+
+// Uso:
+await deleteNote('cmj3k8pmz0001jgbu...');
 ```
 
 ---
