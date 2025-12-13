@@ -58,6 +58,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { title, content, categoryId, userId } = body;
 
+    console.log("📝 POST /api/notes", { title, content, categoryId, userId });
+
     if (!title || !content) {
       return NextResponse.json(
         { error: "Title and content are required" },
@@ -74,6 +76,13 @@ export async function POST(req: Request) {
 
     const finalUserId = userId || "anonymous-" + Date.now();
 
+    console.log("Creating note with:", {
+      title,
+      content,
+      categoryId,
+      userId: finalUserId,
+    });
+
     const note = await prisma.note.create({
       data: {
         title,
@@ -84,14 +93,20 @@ export async function POST(req: Request) {
       include: { category: true },
     });
 
+    console.log("✅ Note created:", note.id);
+
     return NextResponse.json(
       { ok: true, data: note },
       { status: 201, headers: CORS_HEADERS }
     );
-  } catch (err) {
-    console.error("Error creating note:", err);
+  } catch (err: any) {
+    console.error("❌ Error creating note:", err.message);
+    console.error("Full error:", err);
     return NextResponse.json(
-      { error: "Error creating note", details: String(err) },
+      {
+        error: "Error creating note",
+        message: err.message,
+      },
       { status: 500, headers: CORS_HEADERS }
     );
   }
