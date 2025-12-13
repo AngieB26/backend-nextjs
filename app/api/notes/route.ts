@@ -65,15 +65,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // Si no hay userId, generar uno temporal
+    if (!categoryId) {
+      return NextResponse.json(
+        { error: "categoryId is required" },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+
     const finalUserId = userId || "anonymous-" + Date.now();
-    const finalCategoryId = categoryId || (await getOrCreateDefaultCategory());
 
     const note = await prisma.note.create({
       data: {
         title,
         content,
-        categoryId: finalCategoryId,
+        categoryId,
         userId: finalUserId,
       },
       include: { category: true },
@@ -86,7 +91,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("Error creating note:", err);
     return NextResponse.json(
-      { error: "Error creating note" },
+      { error: "Error creating note", details: String(err) },
       { status: 500, headers: CORS_HEADERS }
     );
   }
