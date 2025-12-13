@@ -75,7 +75,20 @@ export async function POST(req: Request) {
     // categoryId es opcional, si no lo proporciona usar uno por defecto
     let finalCategoryId = categoryId;
     if (!finalCategoryId) {
+      console.log("   → No categoryId provided, using default 'General'");
       finalCategoryId = await getOrCreateDefaultCategory();
+    } else {
+      // Verificar que la categoría existe
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: finalCategoryId },
+      });
+      
+      if (!categoryExists) {
+        console.log("   → Invalid categoryId, using default 'General'");
+        finalCategoryId = await getOrCreateDefaultCategory();
+      } else {
+        console.log("   → Using provided categoryId:", finalCategoryId, "(" + categoryExists.name + ")");
+      }
     }
 
     // userId es opcional - si no se proporciona, dejar como null
@@ -108,11 +121,25 @@ export async function POST(req: Request) {
     );
   } catch (err: any) {
     console.error("❌ Error creating note:", err.message);
-    console.error("Full error:", err);
+    console.error("   Error code:", err.code);
+    console.error("   Full error:", JSON.stringify(err, null, 2));
+    
+    // Error específico de Prisma para foreign key
+    if (err.code === 'P2003') {
+      return NextResponse.json(
+        {
+          error: "Invalid category ID",
+          message: "The provided categoryId does not exist",
+        },
+        { status: 400, headers: CORS_HEADERS }
+      );
+    }
+    
     return NextResponse.json(
       {
         error: "Error creating note",
         message: err.message,
+        code: err.code,
       },
       { status: 500, headers: CORS_HEADERS }
     );
