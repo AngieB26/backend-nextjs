@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://frontend-lovable.vercel.app",
+  "Access-Control-Allow-Origin": "https://frontend-mindnote.vercel.app",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",
